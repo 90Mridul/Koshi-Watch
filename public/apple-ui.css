@@ -378,6 +378,12 @@ footer {
 }
 #root select option { color: #1d1d1f; background: #fff; }
 
+/* Give Recharts' measured SVG the same dimensions as its responsive chart. */
+#root .recharts-responsive-container > div[style*="overflow: visible"] {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   #root select:not([multiple]) { transition: none; }
 }

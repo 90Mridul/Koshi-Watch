@@ -47,6 +47,8 @@ Clouds, shadows, vegetation, wet soil, mixed shoreline pixels, acquisition timin
 - [Copernicus GloFAS](https://global-flood.emergency.copernicus.eu/general-information/about-glofas/) discharge and [ECMWF ERA5](https://confluence.ecmwf.int/pages/viewpage.action?pageId=669811810) rainfall reanalysis.
 - Administrative boundary linework from [Natural Earth](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-boundary-lines/).
 
+The overview uses NASA Earth Observatory MODIS images: Terra observations from 8 and 24 August 2008 and an Aqua observation from 3 August 2007, courtesy of the MODIS Rapid Response Team at NASA GSFC. Its Koshi Barrage photograph, `Koshiriver.jpg`, is by Anilmix (2018), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+
 Source attribution should be retained when imagery or results are reused. Each provider's terms apply to its data and products.
 
 ## Project architecture

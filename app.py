@@ -16,7 +16,7 @@ from urllib.parse import parse_qs, quote, urlsplit
 
 import requests
 from flask import Flask, jsonify, request, send_file, send_from_directory
-from processing import channel_metrics, compute_bbox_overlap_ratio, extract_channel_lines, rainfall_summary
+from processing import channel_metrics, compute_bbox_overlap_ratio, extract_channel_lines, rainfall_summary, water_area_from_histogram
 
 ROOT = Path(__file__).resolve().parent
 # Vercel's deployment filesystem is read-only except for /tmp. Local runs keep
