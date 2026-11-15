@@ -511,6 +511,45 @@ def satellite_image():
         path=_render_satellite_image(col,item,mode,bbox,w,h); return send_file(path,mimetype='image/png',max_age=604800)
     except (requests.RequestException,ValueError) as e: return jsonify(error=str(e)),502
 
+@app.get('/api/satellite/river-course')
+def satellite_river_course():
+    """Trace the river from the exact optical acquisition selected in Observatory."""
+    collection=request.args.get('collection',''); item=request.args.get('item','')
+    if collection not in ('sentinel-2-l2a','landsat-c2-l2') or not re.fullmatch(r'[A-Za-z0-9_.-]{1,160}',item):
+        return jsonify(error='A valid optical collection and scene item are required.'),400
+    try:
+        requested_date=date.fromisoformat(request.args.get('date',''))
+    except ValueError:
+        return jsonify(error='date must use YYYY-MM-DD.'),400
+    current=date.today()
+    if requested_date<date(1988,1,1) or requested_date>current:
+        return jsonify(error=f'date must be between 1988-01-01 and {current.isoformat()}.'),400
+    try:
+        expected_collection,_=_water_analysis_source(item)
+        if expected_collection!=collection: return jsonify(error='Scene ID does not match the selected collection.'),400
+    except ValueError as e:
+        return jsonify(error=str(e)),400
+    key=f'exact-river-course:v1:{collection}:{item}'
+    found=cached(key)
+    if found is not None: return jsonify(course=found)
+    try:
+        response=requests.post(STAC,json={'collections':[collection],'ids':[item]},timeout=15)
+        response.raise_for_status(); features=response.json().get('features',[])
+        if not features: return jsonify(error='The selected satellite scene is no longer available.'),404
+        feature=features[0]; props=feature.get('properties',{}); acquired=(props.get('datetime') or '')[:10]
+        if acquired!=requested_date.isoformat():
+            return jsonify(error='The selected scene date does not match its acquisition date.'),400
+        bounds=feature.get('bbox') or []
+        if len(bounds)<4: return jsonify(error='The selected scene has no usable geographic bounds.'),502
+        observation=dict(requestedYear=requested_date.year,actualYear=requested_date.year,collection=collection,
+            sensorLabel=('ESA Sentinel-2 (10 m)' if collection=='sentinel-2-l2a' else 'USGS Landsat Collection 2 (30 m)'),
+            sceneId=item,observationDate=acquired,bbox=bounds)
+        course=extract_river_course(observation,requested_date.year)
+        cache(key,course,21600 if requested_date.year==current.year else 2592000)
+        return jsonify(course=course)
+    except (requests.RequestException,ValueError,IndexError,KeyError) as e:
+        return jsonify(error=f'Unable to trace this acquisition: {e}'),502
+
 @app.get('/api/analysis/saved')
 def saved_analyses():
     c=connect(); rows=[dict(x) for x in c.execute('SELECT w.*,r.name AS region_name FROM water_analyses w JOIN regions r ON r.id=w.region_id ORDER BY observation_date DESC,created_at DESC LIMIT 50')]; c.close(); return jsonify(records=rows)
