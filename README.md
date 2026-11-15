@@ -1,5 +1,7 @@
 # Koshi Watch
 
+https://koshi-watch.vercel.app/
+
 **An environmental observatory for the Sapta Koshi River basin.** Koshi Watch brings satellite imagery, river change, rainfall, and modeled flow into one place to help people explore how water moves across eastern Nepal and northern Bihar.
 
 The observatory is designed for visual comparison and scientific context. Its maps and indicators support exploration; they are not a substitute for field measurements, official warnings, or operational flood forecasts.
