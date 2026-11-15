@@ -1,95 +1,68 @@
 # Koshi Watch
 
-Koshi Watch is a local web app for exploring satellite imagery, river-channel change, rainfall, and modeled river flow across the Koshi basin in Nepal and India. It brings those records together on an interactive map so users can compare places and dates and inspect how the river corridor has changed.
+**An environmental observatory for the Sapta Koshi River basin.** Koshi Watch brings satellite imagery, river change, rainfall, and modeled flow into one place to help people explore how water moves across eastern Nepal and northern Bihar.
 
-## Start the app
+The observatory is designed for visual comparison and scientific context. Its maps and indicators support exploration; they are not a substitute for field measurements, official warnings, or operational flood forecasts.
 
-Requirements: Python 3.10 or later and an internet connection for data that is not already cached.
+## Explore
 
-```powershell
-Set-Location -LiteralPath 'path\to\koshi watch translated'
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python app.py
-```
+### Observatory
 
-Open the local address printed in the terminal (usually http://127.0.0.1:5000). To use a different port:
+Compare dated satellite observations over four study areas: Koshi Tappu, Koshi Barrage, the Kusaha breach corridor, and the Chatara gorge. The map combines optical and radar imagery with historical water layers, river pathways, boundaries, and landmarks. Where imagery permits, an NDWI-based estimate summarizes water area inside the selected region.
 
-```powershell
-$env:PORT = '5001'
-python app.py
-```
+### Rivers & Wetlands
 
-## Deploy to Vercel
+Inspect annual imagery, compare river courses across years, and explore long-term surface-water occurrence and channel transitions across the Koshi floodplain.
 
-This repository is prepared for Vercel's Flask runtime. `app.py` exports the Flask application, `requirements.txt` declares its Python dependencies, and `.python-version` selects Python 3.12. Static files are mirrored into `public/` for Vercel's CDN while the Flask development server continues to serve the copy in `dist/`.
+### Flood & Rain
 
-For a GitHub deployment:
+Review modeled river discharge and historical rainfall comparisons for the Koshi catchment.
 
-1. Create a GitHub repository and push this project, including `dist/` and `public/`. Do not commit `data/`, which contains local databases and downloaded imagery.
-2. Import the repository at [vercel.com/new](https://vercel.com/new) and leave the framework build and output settings on automatic detection. Vercel detects the Flask app from `app.py` and its dependencies.
-3. Deploy a preview, check the Observatory and API routes, then promote it to production from Vercel.
+### Data & Methodology
 
-For a CLI preview deployment, install the Vercel CLI and run `vercel` from the project root. Use `vercel --prod` when you are ready to publish.
+Find the sources, spatial and temporal coverage, calculations, and limitations associated with the maps and measurements.
 
-Vercel Functions use temporary writable storage. This app places its SQLite database and downloaded imagery cache in `/tmp/koshi-watch` on Vercel, so saved analyses and warmed cache files are not durable across cold starts or instances. For persistent production records, configure an external database and object/cache storage before relying on saved analyses. No credentials are required for the current public data sources.
+## Imagery and scale
 
-The browser interface is included in `dist/`; Node.js and a separate frontend build are not needed to run the Python app.
+The available detail depends on the selected sensor and product. Sentinel-2 optical imagery is provided at 10 m resolution; Landsat surface-reflectance imagery at 30 m; and NASA MODIS imagery at approximately 250 m. Radar products have their own acquisition dates and product resolutions. A map zoom level does not increase the underlying image resolution.
 
-## What you can explore
+Historical requests use the archive available for that period. Landsat provides the longer optical record, while Sentinel-2 supplies finer detail for its coverage period. Satellite observations are intermittent, so an exact requested date may have no acquisition for the selected region or sensor.
 
-- **Observatory:** Select a study region, browse optical or radar layers, choose dates, compare two acquisitions, and estimate water-covered area from an optical scene. The SAR date slider lists actual archive acquisition dates; a date without a pass remains selectable and is identified as having no scene.
-- **Rivers & Wetlands:** Review annual satellite images and image-derived river pathways, compare a target year with a baseline, and inspect long-term water occurrence and channel transitions.
-- **Flood & Rain:** View modeled river discharge and compare historical catchment rainfall across years.
-- **Data Sources & Methodology:** Review the datasets, calculation, and limits behind the displayed information.
+## Interpreting the results
 
-## Reading the map and measurements
+- **Water-area estimate:** The NDWI method identifies image pixels above a selected threshold inside a study boundary and scales the valid-pixel share to the boundary area. It is an image-derived estimate for a particular acquisition, not a surveyed flood outline or water-depth measurement.
+- **River pathways:** Image-derived pathways help compare broad channel patterns. They are not surveyed banks, bathymetry, or navigable river centerlines.
+- **Radar imagery:** SAR can provide visual context when clouds limit optical observations. Archive browse imagery is for visual inspection and is not, by itself, a flood classification.
+- **Discharge and rainfall:** GloFAS discharge is modeled flow, not a direct gauge reading. ERA5 rainfall is a gridded reanalysis, not a local rain-gauge observation.
+- **Historical water occurrence:** JRC occurrence layers summarize water detections across their observation record; they do not show current water level.
 
-The small **i** buttons beside scientific terms open short explanations. In brief:
+Clouds, shadows, vegetation, wet soil, mixed shoreline pixels, acquisition timing, sensor resolution, study boundaries, and analysis thresholds can all affect results. Compare observations with similar sensors and conditions, and consult the methodology before interpreting differences as real-world change.
 
-- **NDWI** compares green and near-infrared reflectance. Water often has a higher index value than dry land, but shadows, wet soil, vegetation, clouds, and mixed shoreline pixels can affect the result. It is an image-based indicator, not a direct measurement of water depth.
-- **Water area** estimates the share of valid image pixels inside the selected boundary that exceed the NDWI threshold, then scales that share by the boundary area. Treat it as an estimate for that image date, not a surveyed flood extent.
-- **River pathways** are extracted from satellite water-index pixels. They are useful for comparing broad channel patterns, but they are not surveyed channel banks or navigable river centerlines.
-- **NISAR and Sentinel-1 SAR** use radar and can provide imagery when optical scenes are obscured by clouds. The NISAR view in this app is a georeferenced archive browse image for visual inspection; it does not classify flooded pixels.
-- **GloFAS flow** is a model estimate, not a direct gauge reading. **ERA5 rainfall** is a gridded historical weather estimate, not a local rain-gauge measurement.
-- **JRC water occurrence** describes how often water was identified in the historical Landsat record. It is not a current water-level layer.
+## Data sources and attribution
 
-Clouds, acquisition timing, sensor resolution, region boundaries, and thresholds all affect what can be seen and measured. Compare like dates and layers when possible, and use the Methodology page before interpreting a number as a field measurement.
+- [Copernicus Sentinel-2](https://dataspace.copernicus.eu/data-collections/copernicus-sentinel-missions/sentinel-2) and [USGS Landsat Collection 2](https://www.usgs.gov/landsat-missions/landsat-collection-2-surface-reflectance), accessed through the [Microsoft Planetary Computer](https://planetarycomputer.microsoft.com/docs/).
+- [NASA-ISRO NISAR](https://nisar.jpl.nasa.gov/) and [Sentinel-1](https://dataspace.copernicus.eu/data-collections/copernicus-sentinel-missions/sentinel-1), with archive discovery through the [Alaska Satellite Facility](https://asf.alaska.edu/).
+- [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/) imagery, including MODIS products.
+- [EC JRC Global Surface Water](https://developers.google.com/earth-engine/datasets/catalog/JRC_GSW1_4_Metadata) occurrence and transition products.
+- [Copernicus GloFAS](https://global-flood.emergency.copernicus.eu/general-information/about-glofas/) discharge and [ECMWF ERA5](https://confluence.ecmwf.int/pages/viewpage.action?pageId=669811810) rainfall reanalysis.
+- Administrative boundary linework from [Natural Earth](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-boundary-lines/).
 
-## Data and attribution
+Source attribution should be retained when imagery or results are reused. Each provider's terms apply to its data and products.
 
-The app queries or displays data from these providers:
+## Project architecture
 
-- [Copernicus Sentinel-2](https://dataspace.copernicus.eu/data-collections/copernicus-sentinel-missions/sentinel-2) and [USGS Landsat Collection 2](https://www.usgs.gov/landsat-missions/landsat-collection-2-surface-reflectance) optical imagery, accessed through the [Microsoft Planetary Computer](https://planetarycomputer.microsoft.com/docs/).
-- [NASA-ISRO NISAR and Sentinel-1 archive imagery](https://asf.alaska.edu/notices/nisar-l-band-data-now-publicly-available/) discovered through the Alaska Satellite Facility (ASF).
-- [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/) MODIS imagery.
-- [EC JRC Global Surface Water](https://developers.google.com/earth-engine/datasets/catalog/JRC_GSW1_4_Metadata) historical occurrence and transition products.
-- [Copernicus GloFAS](https://global-flood.emergency.copernicus.eu/general-information/about-glofas/) river-flow estimates and [ECMWF ERA5](https://confluence.ecmwf.int/pages/viewpage.action?pageId=669811810) rainfall reanalysis.
-- Country-border linework from [Natural Earth](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-boundary-lines/).
+The server is a Flask application that serves the browser interface and provides API endpoints for imagery, hydrology, and image processing. The client is distributed as browser-ready assets; no separate frontend build is required for the deployed application. Satellite and map products are fetched from their upstream providers and rendered for the selected study area.
 
-Please retain provider attribution when reusing imagery or results, and consult each provider's terms for publication or redistribution.
+- `app.py` — Flask routes, upstream data access, image rendering, and runtime caching.
+- `processing.py` — channel and rainfall processing utilities.
+- `dist/` — browser application and its release assets.
+- `public/` — static asset set for the hosting platform.
+- `requirements.txt` — Python runtime dependencies.
 
-## Caching and local files
+## Limitations
 
-The app stores its SQLite database and downloaded map or image cache under `data/`. The Rivers & Wetlands page starts a background image warm-up: it visits years from newest to oldest, caching true-color imagery first and NDWI imagery second. The warm-up does not block the page. Its current phase and progress are available at `/api/rivers/cache-status`. Cached imagery can make later visits faster; uncached requests still need an internet connection.
-
-Keep `data/` if you want to retain local records and cached files. It is runtime data and is not required to install the app.
-
-## Project files
-
-- `app.py` - Flask server, data endpoints, image rendering, and cache management.
-- `processing.py` - river-channel and rainfall processing functions.
-- `dist/` - browser files served by Flask.
-- `public/` - static assets used by the local app.
-- `vercel.json` and `.python-version` - Vercel runtime configuration.
-- `requirements.txt` - Python dependencies.
-- `data/` - local database and caches created or updated while the app runs.
-
-## Data limitations
-
-Satellite passes are intermittent, and cloud-free scenes may not exist for a requested day. Optical water estimates can be affected by cloud and shadow contamination, vegetation, mixed pixels, and the selected threshold. Radar browse images provide visual context but are not a flood classification. Modeled discharge and reanalysis rainfall should be interpreted as estimates and checked against local observations when decisions require measured conditions.
+Satellite passes are intermittent, and cloud-free optical observations may not exist for a requested date. Optical indices can be affected by cloud and shadow contamination, vegetation, mixed pixels, and threshold selection. Radar browse images provide visual context but do not classify flood extent. Modeled discharge and reanalysis rainfall should be treated as estimates and checked against local observations when decisions require measured conditions.
 
 ## License
 
-This package does not include a project license. The satellite, hydrology, boundary, and basemap data remain subject to their respective providers' terms; see the links above before redistributing data or derived products.
+This repository does not currently include a project-level license. Data and imagery remain subject to their respective provider terms. Review those terms before redistributing source data or derived products.
