@@ -444,10 +444,14 @@ def scenes():
     if start>end: return jsonify(error='startDate must be earlier than or equal to endDate.'),400
     provider=request.args.get('provider','sentinel-2-l2a')
     if provider not in ('auto','sentinel-2-l2a','landsat-c2-l2'): return jsonify(error='provider must be auto, sentinel-2-l2a, or landsat-c2-l2.'),400
-    try: cloud=min(100,max(1,float(request.args.get('maxCloud',35)))); limit=min(30,max(1,int(request.args.get('limit',15))))
+    try:
+        cloud=min(100,max(1,float(request.args.get('maxCloud',35)))); limit=min(30,max(1,int(request.args.get('limit',15))))
+        min_overlap=float(request.args.get('minOverlap',.75)); sort_by=request.args.get('sortBy','recent')
     except ValueError: return jsonify(error='maxCloud and limit must be numeric.'),400
+    if not 0.05<=min_overlap<=1: return jsonify(error='minOverlap must be between 0.05 and 1.'),400
+    if sort_by not in ('recent','least-cloud'): return jsonify(error='sortBy must be recent or least-cloud.'),400
     cache_provider=provider
-    key=f"stac:v2:{r['id']}:{start}:{end}:{cloud}:{limit}" if provider=='sentinel-2-l2a' else f"stac:v2:{r['id']}:{start}:{end}:{cloud}:{limit}:{provider}"
+    key=f"stac:v3:{r['id']}:{start}:{end}:{cloud}:{min_overlap}:{sort_by}:{limit}:{provider}"
     saved=cached(key)
     if saved is not None:
         # The original TypeScript cache stores only the scene list; the HTTP route wraps it.
@@ -459,7 +463,8 @@ def scenes():
         collections=([provider] if provider!='auto' else (['landsat-c2-l2'] if end<cutoff else ['sentinel-2-l2a'] if start>=cutoff else ['landsat-c2-l2','sentinel-2-l2a']))
         feature_rows=[]
         for collection in collections:
-            payload={"collections":[collection],"bbox":r['bbox'],"datetime":f"{start}T00:00:00Z/{end}T23:59:59Z","query":{"eo:cloud_cover":{"lt":cloud}},"limit":40,"sortby":[{"field":"properties.datetime","direction":"desc"}]}
+            scene_order=[{"field":"properties.eo:cloud_cover","direction":"asc"}] if sort_by=='least-cloud' else [{"field":"properties.datetime","direction":"desc"}]
+            payload={"collections":[collection],"bbox":r['bbox'],"datetime":f"{start}T00:00:00Z/{end}T23:59:59Z","query":{"eo:cloud_cover":{"lt":cloud}},"limit":40,"sortby":scene_order}
             resp=requests.post(STAC,json=payload,timeout=20); resp.raise_for_status()
             feature_rows.extend((feature,collection) for feature in resp.json().get('features',[]))
         feature_rows.sort(key=lambda item:item[0].get('properties',{}).get('datetime',''),reverse=True)
@@ -468,7 +473,7 @@ def scenes():
             b=f.get('bbox')
             if not b or len(b)<4: continue
             overlap=compute_bbox_overlap_ratio(b,r['bbox'])
-            if overlap<.75: continue
+            if overlap<min_overlap: continue
             props=f.get('properties',{}); dt=props.get('datetime',''); d=dt[:10]
             if collection=='sentinel-2-l2a': tile=props.get('s2:mgrs_tile') or f.get('id','').split('_')[3] if len(f.get('id','').split('_'))>3 else props.get('s2:mgrs_tile','unknown')
             else: tile=f"{props.get('landsat:wrs_path','')}-{props.get('landsat:wrs_row','')}" or f.get('id','')
@@ -495,8 +500,10 @@ def scenes():
                     pa=(pib[2]-pib[0])*math.cos(math.radians((pib[1]+pib[3])/2))/(pib[3]-pib[1]); pw,ph=(1152,max(256,round(1152/pa))) if pa>=1 else (max(256,round(1152*pa)),1152); pbase=f'/api/satellite/image?collection={collection}&item={quote(peer["id"],safe="")}&bbox={quote(",".join(map(str,pib)))}&w={pw}&h={ph}'
                     scene.update(companionVisualImageUrl=pbase+'&mode=visual',companionNdwiImageUrl=pbase+'&mode=ndwi',companionImageBounds=pib)
             out.append(scene)
-            if len(out)>=limit: break
-        result=dict(regionId=r['id'],regionName=r['name'],startDate=start,endDate=end,maxCloudCover=cloud,provider=provider,scenes=out); cache(key,result,21600); _schedule_scene_precache(out); return jsonify(result)
+            if sort_by=='recent' and len(out)>=limit: break
+        if sort_by=='least-cloud':
+            out.sort(key=lambda scene:(scene['cloudCover'],-int(scene['date'].replace('-','')))); out=out[:limit]
+        result=dict(regionId=r['id'],regionName=r['name'],startDate=start,endDate=end,maxCloudCover=cloud,minSceneOverlap=min_overlap,sortBy=sort_by,provider=provider,scenes=out); cache(key,result,21600); _schedule_scene_precache(out); return jsonify(result)
     except requests.RequestException as e: return jsonify(error=f'Satellite scene service unavailable: {e}'),502
 
 @app.get('/api/satellite/image')
