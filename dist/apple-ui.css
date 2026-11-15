@@ -399,6 +399,48 @@ footer {
   height: 100% !important;
 }
 
+/* Overview metrics: align all four label, value, and detail rows. */
+#root main [class*="mt-8"][class*="grid-cols-2"][class*="lg:grid-cols-4"] {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  align-items: stretch;
+}
+#root main > div[class*="bg-[#F8FAFC]"] > section:first-child > div.mt-8.grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+#root main [class*="mt-8"][class*="grid-cols-2"][class*="lg:grid-cols-4"] > div {
+  display: grid;
+  grid-template-rows: minmax(34px, auto) 40px minmax(34px, auto);
+  align-content: start;
+  min-width: 0;
+}
+#root main [class*="mt-8"][class*="grid-cols-2"][class*="lg:grid-cols-4"] > div > p:first-child {
+  line-height: 1.35;
+}
+#root main [class*="mt-8"][class*="grid-cols-2"][class*="lg:grid-cols-4"] > div > p:nth-child(2) {
+  align-self: center;
+  margin-top: 0 !important;
+  white-space: nowrap;
+}
+#root main [class*="mt-8"][class*="grid-cols-2"][class*="lg:grid-cols-4"] > div > p:nth-child(3) {
+  align-self: start;
+  margin-top: 0 !important;
+  line-height: 1.4;
+}
+@media (max-width: 767px) {
+  #root main [class*="mt-8"][class*="grid-cols-2"][class*="lg:grid-cols-4"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  #root main > div[class*="bg-[#F8FAFC]"] > section:first-child > div.mt-8.grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  #root main [class*="mt-8"][class*="grid-cols-2"][class*="lg:grid-cols-4"] > div + div {
+    border-left: 0 !important;
+    padding-left: 12px !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #root select:not([multiple]) { transition: none; }
 }
