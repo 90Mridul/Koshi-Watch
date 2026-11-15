@@ -1,0 +1,189 @@
+KOSHI WATCH — PROJECT DESCRIPTION
+=================================
+
+PROJECT
+-------
+Koshi Watch is an interactive environmental observatory for the Sapta Koshi River Basin in eastern Nepal and northern Bihar, India. It brings satellite imagery, river-channel change, wetland water analysis, flood discharge, rainfall history, regional landmarks, and historical flood context into one map-based application.
+
+This folder is the Python runtime translation of the original project at:
+C:\Users\Lenovo\antigravity\Koshi-Watch
+
+The original project was not edited. The translated server, processing logic, local data, and generated browser bundle are kept here. The server and analytical API are Python. The user interface is the compiled React/TypeScript browser bundle in dist/. Browsers need JavaScript to run this interface; npm, Node.js, Vite, and TypeScript are not required to run the translated app.
+
+PURPOSE AND COVERAGE
+--------------------
+The application is focused on the Koshi corridor in Nepal. Region and imagery requests are restricted to the local study areas and a padded Koshi extent; the imagery API does not accept arbitrary global extents.
+
+Four seeded areas of interest are provided:
+1. koshi-tappu — Koshi Tappu Ramsar Wetland.
+2. koshi-barrage — Koshi Barrage Ponding Reach.
+3. kusaha-breach — Kusaha 2008 Avulsion Corridor.
+4. chatara-gorge — Chatara Gorge Fan Apex.
+
+Satellite coverage follows the available sensors. Historical years, including the 2008 Kusaha breach, use Landsat Collection 2 Level-2 imagery. Modern years use Sentinel-2 L2A. Sentinel-2 did not provide imagery in 2008; therefore a 2008 request is served from Landsat, at 30 m resolution, rather than presenting false 10 m Sentinel data. NASA MODIS also provides broad, daily visual context from 2000 onward at lower spatial resolution. JRC Global Surface Water layers cover the historical water record through 2021.
+
+USER INTERFACE
+--------------
+The bundled single-page interface contains these views:
+• Overview: project introduction, basin context, and navigation to the analysis views.
+• Observatory: study-area selector, custom date ranges (1988 through yesterday), Automatic/Sentinel-2/Landsat archive choice, true-color and NDWI imagery, historical water layers, cached MODIS/GIBS date layers, a first-position NISAR layer with a linked date slider/input and independent baseline/target dates, georeferenced full-resolution swath-clipped NISAR image overlays, Sentinel-1 archive selection, SAR scene footprints, cached ASF previews, basemap, scene comparison, region boundaries, channel overlays, landmarks, and NDWI water-area calculations.
+• Flood & Rain: Open-Meteo GloFAS discharge history/forecast and ERA5 rainfall comparisons for two selected years.
+• Rivers & Wetlands: annual river imagery, year slider and playback, visual/NDWI/JRC map layers, comparison maps, extracted channel courses, and landmarks.
+• Methodology: descriptions of imagery, data sources, and analysis methods.
+
+The browser interface uses React, MapLibre GL, Recharts, and the bundled styling and icon assets. Its compiled output is stored in dist/. The bundle includes a MapLibre worker. Browser image assets used by the bundle are stored under dist/src/assets/images/.
+
+The Observatory map update code waits for the MapLibre style to finish loading before adding/updating sources and layers. This prevents the previously reproduced "Style is not done loading" exception when changing from the 2008 flood preset to Sentinel imagery while the comparison map is initializing. The original TypeScript source remains unchanged; this guard is in the generated translated-folder browser bundle.
+
+PYTHON SERVER AND STARTUP
+-------------------------
+Main server: app.py
+Processing algorithms: processing.py
+Python dependencies: requirements.txt
+User/run instructions: README.md
+This file: desc.txt
+
+Recommended Python version: 3.10 or newer.
+
+Windows PowerShell startup:
+  cd "C:\Users\Lenovo\antigravity\koshi watch translated"
+  python -m venv .venv
+  .venv\Scripts\Activate.ps1
+  python -m pip install -r requirements.txt
+  python app.py
+
+The default local address is http://127.0.0.1:5000. The server binds only to the local computer. Set a different port before running, for example:
+  $env:PORT = "5001"
+  python app.py
+
+Dependencies listed in requirements.txt:
+• Flask 3.x — HTTP API and static-file server.
+• requests 2.x — HTTP access to public data services.
+• NumPy 1.26 or newer, below 3 — parsing and processing NPY raster matrices.
+
+No npm install/build command is needed to run the copied application. The browser bundle is already built.
+
+HTTP API
+--------
+All API routes are served by app.py. JSON APIs return JSON objects with camelCase keys compatible with the existing UI. Image and tile routes return the corresponding binary image formats.
+
+Health and study-area routes:
+• GET /api/health — status, number of seeded regions, saved-analysis count, and UTC timestamp.
+• GET /api/observatory/regions — four study-area records with center, zoom, bounding box, GeoJSON, description, and area.
+
+River routes:
+• GET /api/rivers/channels — extracted course features, historical milestones, landmarks, and flood stations. It uses a saved curated-course cache when available; otherwise it searches and processes the configured landmark years.
+• GET /api/rivers/satellite-year?year=latest — latest suitable satellite observation and, by default, the pixel-extracted course.
+• GET /api/rivers/satellite-year?year=2008 — requested historical year; years from 1988 through the current year are accepted. If a year has no acquisition, the adjacent-year search may mark and return a fallback observation.
+• Add includeCourse=false to /api/rivers/satellite-year to return imagery data without extracting a course. This is used during rapid playback.
+• Annual observation fields include requestedYear, actualYear, fallbackUsed, collection, sensorLabel, sceneId, observationDate, cloudCover, bbox, imageBounds, visualImageUrl, ndwiImageUrl, and optional companion scene/image fields.
+
+Satellite routes:
+• GET /api/satellite/scenes?regionId=...&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&provider=auto|sentinel-2-l2a|landsat-c2-l2&maxCloud=...&limit=... — searches dated Planetary Computer STAC scenes, filters by study-area overlap, deduplicates date/tile results, and returns imagery and preview URLs. Automatic uses Landsat before Sentinel-2 coverage, Sentinel-2 after its first acquisitions, and both collections for a range spanning the transition. Search results are cached for six hours per region/date/provider/query.
+• GET /api/satellite/image?collection=...&item=...&bbox=minx,miny,maxx,maxy&w=...&h=...&mode=visual|ndwi — downloads a geo-registered PNG render from TiTiler and caches it on disk. Supported collections are sentinel-2-l2a and landsat-c2-l2. Image extents are validated against the Koshi limit bounding box; requested width and height are clamped to 256–1400 pixels.
+• The scene search calculates output dimensions using the geographic aspect ratio adjusted for latitude. It retains the original scene coverage geometry to avoid stretching landscape and portrait acquisitions.
+• Scene search starts background image warm-up without delaying its HTTP response. It queues visual and NDWI renders, including companion tiles, for the newest configured number of scenes. Two worker threads share this queue. SATELLITE_PRECACHE_SCENES controls the count (default 4, maximum 16); set it to 0 to disable warm-up. Images not warmed ahead are cached on first request.
+
+SAR routes:
+• GET /api/sar/scenes?regionId=...&date=YYYY-MM-DD&mission=both|nisar|sentinel-1&limit=... — searches ASF's official archive for that exact acquisition day and AOI. NISAR is queried as GCOV; Sentinel-1 queries GRD_HD, GRD_MD, and GRD_FD. Results include product identifiers, acquisition times, orbit/direction/polarization, scene geometry, ASF archive links, and a local cached-browse URL. Queries are cached for six hours by date, mission, region, and limit. No nearest-date substitution is performed.
+• GET /api/sar/browse?url=... — proxies only allowlisted ASF NISAR or Sentinel-1 browse-image URLs and caches them under data/tile_cache/nisar/. It never downloads the multi-gigabyte NISAR science granule.
+• GET /api/sar/georef?url=... — retrieves and caches the four ground corners from the matching ASF NISAR KML GroundOverlay metadata; KML corner order is converted to the MapLibre image-source order.
+• GET /api/sar/overlay?url=...&footprint=... — returns a cached, full-resolution NISAR LATLON browse image masked to the ASF GeoJSON scene footprint. The Observatory displays this image over the map using its KML georeference, so off-swath pixels remain transparent rather than obscuring the basemap.
+• In SAR compare mode, the left and right maps show the independently selected baseline and target ASF scene footprints. The original optical Sentinel-2/Landsat image comparison and optical NDWI water-area calculations are unchanged. ASF browse quicklooks are previews; this feature does not claim to classify flooded pixels from SAR.
+
+Water-analysis routes:
+• POST /api/analysis/water-area — accepts JSON fields regionId, sceneId, observationDate, cloudCover, and ndwiThreshold. The threshold is limited to -0.5 through 0.5. It uses TiTiler NDWI histograms, calculates water/land area and fraction, stores the result in SQLite, and reuses saved results for an identical region, scene, and threshold.
+• GET /api/analysis/water-history?regionId=...&ndwiThreshold=... — returns cached/queried seasonal wetland results for fixed seasonal windows. Individual windows without available scenes or statistics are omitted; if none are available the series can be empty.
+• GET /api/analysis/saved — returns up to 50 saved water analyses, newest observation date first, with the region name.
+
+Hydrology routes:
+• GET /api/hydrology/flood?stationId=koshi-barrage|chatara-gorge — queries Open-Meteo GloFAS discharge data, then returns station thresholds, daily series, latest observed discharge, and peak discharge. Successful results are cached for three hours.
+• GET /api/hydrology/rainfall?yearA=...&yearB=...&season=monsoon|full — retrieves Open-Meteo ERA5 daily precipitation for both years, and returns daily and cumulative series plus rainfall summaries. Years are restricted to 1950 through the current year. The default comparison uses 2024 and 2008 monsoon seasons.
+
+Map-tile routes:
+• GET /api/tiles/jrc/occurrence/{z}/{x}/{y} — JRC Global Surface Water occurrence tiles.
+• GET /api/tiles/jrc/transitions/{z}/{x}/{y} — JRC transition tiles.
+• GET /api/tiles/gibs/{true|flood}/{YYYY-MM-DD}/{z}/{x}/{y} — NASA GIBS MODIS true-color or flood false-color imagery for eligible dates from 2000-02-24 onward. The GIBS tiles are proxied through this server and cached in data/tile_cache/gibs/.
+• GET /api/tiles/imagery/{z}/{x}/{y} — Esri World Imagery tiles.
+• GET /api/tiles/basemap/{z}/{x}/{y}, plus the v2 and v3 path forms — Esri World Topographic tiles with OpenStreetMap fallback and a valid transparent-pixel PNG fallback.
+• JRC and imagery requests are restricted to tiles intersecting the padded Koshi Nepal envelope; JRC zoom is capped at 13. Tile responses are cached on disk.
+
+PROCESSING DETAILS
+------------------
+processing.py ports the key server-side algorithms:
+• Polygon area on a spherical Earth model using the same mean Earth radius as Turf's area utility.
+• Bounding-box intersection ratio used for satellite-scene filtering.
+• NDWI histogram thresholding with linear interpolation when the water threshold splits a histogram bin. Water fraction is clamped to [0, 1], and water/land areas are rounded for output.
+• NumPy loading for two-or-more-band TiTiler NPY grids, where NDWI and validity mask are separate bands.
+• Water pixel masking, fallback threshold when the initial water count is very low, bridging of invalid one-pixel scanline gaps, 8-connected component filtering, horizontal run detection, mainstem tracing, smoothing, downsampling, and secondary braid extraction.
+• River length, endpoint chord, sinuosity, and lateral-shift metrics using haversine distance.
+• Rainfall totals, peak day, wet-day count, and heavy-rain day count.
+
+DATA PROVIDERS
+--------------
+• Microsoft Planetary Computer STAC and TiTiler — Landsat Collection 2, Sentinel-2 L2A, image renders, NDWI statistics, and raster matrices.
+• European Commission Joint Research Centre / Global Surface Water — occurrence and transition tiles.
+• NASA GIBS — MODIS true-color and flood-oriented daily imagery from 2000 onward, proxied and disk-cached by the Python server.
+• Alaska Satellite Facility (ASF DAAC) Search API — exact-date NISAR GCOV and Sentinel-1 GRD scene discovery and scene footprint geometry; official browse quicklooks are proxied and disk-cached. NISAR public GCOV release coverage begins in 2026; Sentinel-1 is available from 2014 onward. Actual archive availability is date/AOI dependent.
+• Open-Meteo — GloFAS river discharge and ERA5 historical precipitation.
+• Esri World Topographic and World Imagery services — basemap and imagery tiles.
+• OpenStreetMap — fallback basemap.
+
+These are external services and require network access when a needed result is not cached. Their availability and response times depend on those providers. API errors are returned as HTTP errors or JSON error objects; cached data may allow some features to remain available when offline.
+
+LOCAL DATA, DATABASE, AND CACHE
+-------------------------------
+Runtime data lives in data/.
+• data/koshi_watch.db — SQLite database. app.py creates and seeds the schema if needed.
+• regions — region identity, metadata, center, GeoJSON, bounding box, and area.
+• water_analyses — saved NDWI analysis values, keyed uniquely by region, scene, and threshold.
+• api_cache — cached JSON payloads with expiration timestamps. Existing TypeScript cache entries are read using their millisecond timestamps; Python-created entries use Unix seconds.
+• data/tile_cache/basemap — basemap tile cache.
+• data/tile_cache/imagery — Esri imagery tile cache.
+• data/tile_cache/jrc — JRC tile cache.
+• data/tile_cache/gibs — NASA GIBS MODIS date-tile cache.
+• data/tile_cache/sat — rendered satellite PNG cache. Cache keys match the original renderer's v3 key format.
+
+The translated folder includes a copy of the source project's database and tile cache so saved analyses and existing imagery can be reused. New runtime files are created under this folder. Do not delete the database if its saved analyses are needed.
+
+FILES AND DIRECTORIES
+---------------------
+• app.py — Flask app, API routes, SQLite access/seeding, provider requests, raster/tile caching, static UI serving, and background satellite-image warm-up.
+• processing.py — numeric, geospatial, NDWI, and river-course algorithms.
+• requirements.txt — Python package constraints.
+• README.md — short installation and run guide.
+• desc.txt — this detailed project description.
+• dist/index.html — compiled application entry document.
+• dist/assets/*.js and *.css — compiled React interface and styles.
+• dist/maplibre-gl-worker.mjs — bundled MapLibre worker.
+• dist/src/assets/images/*.jpg — basin hero, barrage monsoon, and Koshi Tappu wetland photographs referenced by the compiled interface.
+• public/maplibre-gl-worker.mjs — copied original public worker asset.
+• data/ — SQLite database and runtime image/tile caches.
+
+KNOWN BEHAVIOR AND LIMITS
+-------------------------
+• This is a runtime migration, not a Python rendering engine for the browser. The existing React UI remains compiled JavaScript/CSS in dist/ because web browsers execute JavaScript for this interface.
+• The server-side API and processing helpers are Python. Node.js and npm are not needed to launch or serve the translated app.
+• The Python API follows the original route names and response shapes and reads compatible JSON caches. The interface bundle has been rebuilt with a MapLibre style-loading race guard.
+• Satellite and analysis providers can return no scenes or no valid pixels for a region/date. In that case the API reports an error or returns an empty seasonal series rather than manufacturing a measurement.
+• Sentinel-2 is not a valid 2008 sensor. Historical observations use real Landsat data, and the returned sensorLabel identifies the instrument and resolution.
+• The imagery service is locked to the Koshi Nepal geographic envelope for safety and predictable resource use.
+• The Flask development server is intended for local use; it is not configured as a hardened public production deployment.
+
+SAR COMPARISON NOTES
+-------------------
+SAR comparisons use independent exact dates for baseline and target. Sentinel-1 records begin in 2014; the current public ASF NISAR GCOV release covers acquisitions from 2026. No sensor/date substitution is made when an AOI has no matching scene.
+The NISAR LATLON browse image is georeferenced from the matching ASF KML GroundOverlay corners and alpha-masked to the returned ASF scene footprint before drawing. Sentinel-1 remains footprint/quicklook context. Neither source is yet processed into a SAR-derived flood classification; the existing measured water-area calculation remains optical NDWI.
+
+VALIDATION PERFORMED DURING TRANSLATION
+---------------------------------------
+• Python files were syntax-compiled.
+• Histogram, rainfall-summary, and synthetic NDWI channel-processing checks passed.
+• Local health, region, river, water-history, hydrology, static-image, and scene API smoke checks passed against available cached data.
+• The 2008 Landsat observation and both visual/NDWI PNG render routes returned valid image data.
+• Chromium replayed the 2008 Kusaha flood preset followed by switching to the Sentinel visual layer. The page remained rendered with two map canvases and no uncaught browser errors after the style-loading guard was included.
+• Landsat-only and Automatic searches for a 2008 date range returned dated Landsat scenes; a Sentinel-only search for that same range returned an empty scene list instead of inventing Sentinel data.
+• A 2008 NASA GIBS tile request returned a JPEG and created its disk-cache file.
+
+END OF DESCRIPTION
+\n• ASF exact-date tests returned NISAR GCOV scenes on 2026-11-01 and 2026-11-13, Sentinel-1 GRD on 2024-12-29, and valid cached PNG/JPEG browse responses.\n

@@ -1,0 +1,341 @@
+/* Koshi Watch — Flask UI polish. Keep behavior and controls owned by the app. */
+:root {
+  color-scheme: light;
+  --kw-ink: #142b3d;
+  --kw-muted: #627587;
+  --kw-line: rgba(115, 139, 158, 0.2);
+  --kw-paper: #f4f7fa;
+  --kw-blue: #0879b7;
+  --kw-blue-deep: #08689d;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-optical-sizing: auto;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  color: var(--kw-ink) !important;
+  background: var(--kw-paper) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+button:active { transform: scale(0.985); }
+:focus-visible {
+  outline: 3px solid rgba(8, 121, 183, 0.36) !important;
+  outline-offset: 2px;
+}
+
+/* Quiet, translucent navigation that stays attached to the page. */
+header.sticky {
+  background: rgba(249, 251, 253, 0.82) !important;
+  border-color: rgba(115, 139, 158, 0.18) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(22px) saturate(155%);
+  backdrop-filter: blur(22px) saturate(155%);
+}
+header.sticky > div {
+  max-width: none !important;
+  height: 62px !important;
+  padding-inline: clamp(16px, 3vw, 42px) !important;
+}
+header nav { gap: clamp(14px, 2vw, 28px) !important; }
+header nav button {
+  transition: color 160ms ease, border-color 160ms ease;
+  letter-spacing: 0;
+}
+header nav button:hover { color: var(--kw-blue-deep) !important; }
+header button { border-radius: 11px; }
+
+/* Keep the existing landing content, with a little more breathing room. */
+#root > div > main > div:not([class*="min-h-[calc(100vh-3.5rem)]"]) {
+  color: var(--kw-ink);
+}
+#root h1, #root h2, #root h3 {
+  color: #142b3d;
+  letter-spacing: -0.035em;
+}
+#root h1 { line-height: 1.06; }
+#root p { text-wrap: pretty; }
+#root a, #root button { transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease; }
+
+/* Observatory workspace: a distinct instrument panel beside a generous map. */
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] {
+  gap: 14px;
+  padding: 14px;
+  background: var(--kw-paper) !important;
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > aside {
+  width: clamp(330px, 27vw, 390px) !important;
+  max-height: calc(100dvh - 90px) !important;
+  padding: 18px !important;
+  gap: 18px !important;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 124, 143, 0.3) transparent;
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid var(--kw-line) !important;
+  border-radius: 22px;
+  box-shadow: 0 10px 32px rgba(27, 54, 75, 0.055), 0 1px 2px rgba(27, 54, 75, 0.04);
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > aside::-webkit-scrollbar { width: 8px; }
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > aside::-webkit-scrollbar-thumb {
+  background: rgba(99, 124, 143, 0.24);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background-clip: padding-box;
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > aside > div:not(:first-child) {
+  border-color: rgba(115, 139, 158, 0.17) !important;
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > aside > div:first-child {
+  border-radius: 15px !important;
+  background: linear-gradient(145deg, #f0f8fc, #f7fbfd) !important;
+  border-color: rgba(61, 147, 187, 0.16) !important;
+}
+
+/* Quick actions read as a compact launchpad, not another form section. */
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > aside > div:nth-child(2) button {
+  min-height: 40px;
+  padding: 9px 11px !important;
+  border-color: rgba(115, 139, 158, 0.21) !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: #294256 !important;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > aside > div:nth-child(2) button:hover {
+  border-color: rgba(8, 121, 183, 0.35) !important;
+  background: #f4faff !important;
+  box-shadow: 0 3px 12px rgba(26, 94, 130, 0.08);
+}
+
+/* Form controls: consistent hit areas, clear focus, quieter borders. */
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] aside label {
+  color: #52697c !important;
+  line-height: 1.45;
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] aside select,
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] aside input:not([type="range"]):not([type="checkbox"]) {
+  min-height: 40px;
+  border-color: rgba(99, 124, 143, 0.28) !important;
+  border-radius: 11px !important;
+  background-color: #fff !important;
+  color: #20394d !important;
+  box-shadow: inset 0 1px 1px rgba(20, 43, 61, 0.025);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] aside select:focus,
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] aside input:focus {
+  border-color: rgba(8, 121, 183, 0.65) !important;
+  box-shadow: 0 0 0 3px rgba(8, 121, 183, 0.12) !important;
+  outline: none !important;
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] aside input[type="range"] {
+  accent-color: var(--kw-blue);
+  cursor: ew-resize;
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] aside button:not(:first-child) { border-radius: 10px; }
+
+/* Map frame and its floating information surfaces. */
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > div[class*="relative flex-1"] {
+  min-height: 560px !important;
+  border: 1px solid rgba(115, 139, 158, 0.2);
+  border-radius: 22px;
+  box-shadow: 0 14px 38px rgba(27, 54, 75, 0.1), 0 2px 5px rgba(27, 54, 75, 0.05);
+  isolation: isolate;
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > div[class*="relative flex-1"] > .absolute.top-3.left-3 {
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 13px !important;
+  background: rgba(250, 252, 254, 0.86) !important;
+  color: #19364d !important;
+  box-shadow: 0 8px 24px rgba(12, 36, 54, 0.15);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > div[class*="relative flex-1"] .maplibregl-ctrl-group {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.72) !important;
+  border-radius: 13px !important;
+  background: rgba(250, 252, 254, 0.84) !important;
+  box-shadow: 0 5px 18px rgba(12, 36, 54, 0.14) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(145%);
+  backdrop-filter: blur(16px) saturate(145%);
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > div[class*="relative flex-1"] .maplibregl-ctrl-group button {
+  width: 38px;
+  height: 38px;
+  background-color: transparent;
+}
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > div[class*="relative flex-1"] .maplibregl-ctrl-group button:hover {
+  background-color: rgba(8, 121, 183, 0.08);
+}
+
+/* The comparison bar is a floating tool; keep it clear of the imagery. */
+main > div[class*="min-h-[calc(100vh-3.5rem)]"] > div[class*="relative flex-1"] > .absolute.bottom-3 {
+  border: 1px solid rgba(255, 255, 255, 0.82) !important;
+  border-radius: 16px !important;
+  background: rgba(250, 252, 254, 0.88) !important;
+  box-shadow: 0 10px 30px rgba(12, 36, 54, 0.18) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+}
+
+/* Preserve tap feedback without animating the map or a live drag. */
+@media (hover: hover) {
+  button:hover { transition-duration: 140ms; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  header.sticky,
+  main > div[class*="min-h-[calc(100vh-3.5rem)]"] > div[class*="relative flex-1"] > .absolute.top-3.left-3,
+  main > div[class*="min-h-[calc(100vh-3.5rem)]"] > div[class*="relative flex-1"] > .absolute.bottom-3 {
+    background: rgba(250, 252, 254, 0.98) !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (prefers-contrast: more) {
+  :root { --kw-line: rgba(38, 61, 79, 0.42); }
+  header.sticky { background: #f8fafc !important; }
+  main > div[class*="min-h-[calc(100vh-3.5rem)]"] > aside { border-color: #72869a !important; }
+}
+@media (max-width: 767px) {
+  header.sticky > div { height: 56px !important; padding-inline: 14px !important; }
+  main > div[class*="min-h-[calc(100vh-3.5rem)]"] {
+    gap: 10px;
+    padding: 10px;
+  }
+  main > div[class*="min-h-[calc(100vh-3.5rem)]"] > div[class*="relative flex-1"] {
+    min-height: 58svh !important;
+    border-radius: 18px;
+  }
+  main > div[class*="min-h-[calc(100vh-3.5rem)]"] > aside {
+    width: 100% !important;
+    max-height: none !important;
+    padding: 15px !important;
+    gap: 15px !important;
+    border-radius: 18px;
+  }
+  main > div[class*="min-h-[calc(100vh-3.5rem)]"] > div[class*="relative flex-1"] > .absolute.bottom-3 {
+    bottom: 10px !important;
+    max-width: calc(100% - 20px);
+    padding: 9px 10px !important;
+  }
+}
+
+/* Shared page rhythm and a restrained entrance that keeps navigation legible. */
+@keyframes kw-page-enter {
+  from { opacity: 0.84; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#root > div > main > div { animation: kw-page-enter 220ms cubic-bezier(0.2, 0.7, 0.25, 1) both; }
+#root > div > main > div[class*="max-w-"] {
+  padding-top: clamp(28px, 4vw, 56px) !important;
+  padding-bottom: clamp(36px, 5vw, 64px) !important;
+}
+#root > div > main > div[class*="max-w-"] > div:first-child { margin-bottom: 2px; }
+#root main section {
+  border-color: var(--kw-line) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 26px rgba(27, 54, 75, 0.045), 0 1px 2px rgba(27, 54, 75, 0.035);
+}
+#root main section > h2,
+#root main section h2 { letter-spacing: -0.025em; }
+#root main section :is(p, li) { line-height: 1.58; }
+
+/* Landing page: keep the river image the visual anchor, and let facts scan fast. */
+#root main img { border-radius: 18px; }
+#root main [class*="grid-cols-4"] > div,
+#root main [class*="grid-cols-4"] > article {
+  padding: 4px 12px;
+}
+#root main [class*="grid-cols-4"] [class*="font-mono"] {
+  letter-spacing: -0.035em;
+}
+#root main a[class*="rounded"],
+#root main button[class*="rounded"] { min-height: 40px; }
+
+/* Data panels and chart controls share one calm surface across analytical pages. */
+#root main section > div[class*="border-b"]:first-child {
+  border-color: rgba(115, 139, 158, 0.17) !important;
+}
+#root main section .recharts-wrapper,
+#root main section svg.recharts-surface { max-width: 100%; }
+#root main section select,
+#root main section input:not([type="range"]):not([type="checkbox"]) {
+  border-color: rgba(99, 124, 143, 0.28) !important;
+  border-radius: 11px !important;
+  background-color: #fff;
+}
+#root main section button[aria-pressed="true"],
+#root main section button[aria-selected="true"] {
+  box-shadow: 0 1px 3px rgba(18, 49, 70, 0.12);
+}
+#root main section [class*="bg-slate-50"] {
+  border-color: rgba(115, 139, 158, 0.16) !important;
+}
+
+/* Rivers & Wetlands has a map-first floating control panel. */
+#root main [class*="absolute left-3 top-3 z-40"] {
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.76) !important;
+  border-radius: 20px !important;
+  background: rgba(250, 252, 254, 0.9) !important;
+  box-shadow: 0 14px 38px rgba(12, 36, 54, 0.2) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(155%);
+  backdrop-filter: blur(22px) saturate(155%);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 124, 143, 0.28) transparent;
+}
+#root main [class*="absolute left-3 top-3 z-40"] button,
+#root main [class*="absolute left-3 top-3 z-40"] select {
+  border-radius: 11px !important;
+}
+#root main [class*="absolute left-3 top-3 z-40"] button:hover {
+  box-shadow: 0 3px 12px rgba(26, 94, 130, 0.1);
+}
+
+/* Methodology and source notes stay readable without feeling like a document dump. */
+#root main > div[class*="max-w-[1000px]"] {
+  max-width: 1120px !important;
+}
+#root main > div[class*="max-w-[1000px]"] > div:first-child {
+  max-width: 820px;
+}
+#root main > div[class*="max-w-[1000px]"] section { overflow: hidden; }
+#root main > div[class*="max-w-[1000px]"] section > div[class*="bg-slate-50"] {
+  background: #f7fafc !important;
+}
+
+footer {
+  border-color: rgba(115, 139, 158, 0.18) !important;
+  background: rgba(249, 251, 253, 0.88) !important;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+@media (max-width: 767px) {
+  #root > div > main > div { animation-duration: 160ms; }
+  #root main section { border-radius: 16px !important; }
+  #root main > div[class*="max-w-"] { padding-inline: 16px !important; }
+  #root main [class*="absolute left-3 top-3 z-40"] {
+    max-width: calc(100% - 24px);
+    max-height: 48%;
+  }
+  #root main [class*="grid-cols-4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

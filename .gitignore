@@ -1,0 +1,30 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Runtime database and downloaded imagery/tile cache
+/data/**
+!/data/.gitkeep
+*.db
+*.sqlite
+*.sqlite3
+
+# Vercel and local secrets
+.vercel/
+.env
+.env.*
+!.env.example
+/HANDOFF_*.txt
+
+# Local editor/OS and temporary screenshots
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+/apple-*.png
+/revamp*.png
+/ui-*.png
+/obs-ui-before.png
+*.log
