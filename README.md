@@ -64,3 +64,7 @@ The server is a Flask application that serves the browser interface and provides
 ## Limitations
 
 Satellite passes are intermittent, and cloud-free optical observations may not exist for a requested date. Optical indices can be affected by cloud and shadow contamination, vegetation, mixed pixels, and threshold selection. Radar browse images provide visual context but do not classify flood extent. Modeled discharge and reanalysis rainfall should be treated as estimates and checked against local observations when decisions require measured conditions.
+
+## License
+
+This repository does not currently include a project-level license. Data and imagery remain subject to their respective provider terms. Review those terms before redistributing source data or derived products.
