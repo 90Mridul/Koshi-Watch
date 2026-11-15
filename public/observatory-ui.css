@@ -40,7 +40,7 @@ header.sticky > div {
   height: 62px !important;
   padding-inline: clamp(16px, 3vw, 42px) !important;
 }
-header nav { gap: clamp(14px, 2vw, 28px) !important; }
+header nav { gap: clamp(14px, 2vw, 28px) !important; justify-content: center !important; }
 header nav button {
   transition: color 160ms ease, border-color 160ms ease;
   letter-spacing: 0;
@@ -106,7 +106,7 @@ main > div[class*="min-h-[calc(100vh-3.5rem)]"] > aside > div:nth-child(2) butto
   color: #294256 !important;
   font-size: 12px;
   font-weight: 600;
-  text-align: left;
+  text-align: center;
 }
 main > div[class*="min-h-[calc(100vh-3.5rem)]"] > aside > div:nth-child(2) button:hover {
   border-color: rgba(8, 121, 183, 0.35) !important;
